@@ -1,3 +1,4 @@
 ipython==4.0.0
 pymongo==3.2.1
 python-dateutil==2.5.0
+flask 0.10.1
