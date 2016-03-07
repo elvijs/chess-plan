@@ -2,4 +2,4 @@ import os
 
 __author__ = 'elvijs'
 
-BASEDIR = os.path.split(__file__)[0]
+BASEDIR = '/'.join(os.path.split(__file__)[0].split('/')[0:-1])
