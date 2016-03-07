@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+</head>
+<body>
+
+<title>Hello from Flask</title>
+{% if name %}
+  <h1>Hello {{ name }}!</h1>
+{% else %}
+  <h1>Hello World!</h1>
+{% endif %}
+
+<script type=text/javascript src="{{url_for('static', filename='test.js') }}"></script>
+<script type="text/javascript" src="{{url_for('static', filename='js/chess-dataviz/dist/ChessDataViz.js')}}"></script>
+
+</body>
+</html>

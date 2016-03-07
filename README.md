@@ -10,3 +10,6 @@ Had to actually use SCID to port convert si4 to pgn. A real shortage of good inf
 
 Create the virtual environment with python3: 
 `mkvirtualenv --python=/usr/bin/python3 chess`
+
+Notes for self: 
+- [Deployment using fab, nginx, gunicorn and flask](https://realpython.com/blog/python/kickstarting-flask-on-ubuntu-setup-and-deployment/)
