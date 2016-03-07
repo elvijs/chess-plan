@@ -2,4 +2,4 @@
  * Created by elvijs on 07/03/16.
  */
 
-console.log(321);
+console.log(123);
