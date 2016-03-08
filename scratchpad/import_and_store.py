@@ -5,11 +5,12 @@ import storage.storage as store
 
 __author__ = 'elvijs'
 
+LIMIT = 10000
 
 mongo = store.Mongo()
 count = 0
-for game in GameIterator(os.path.join(csettings.BASEDIR, 'DB/OTB-HQ/test games.pgn')):
+for game in GameIterator(os.path.join(csettings.BASEDIR, 'DB/OTB-HQ/OTB-HQ.pgn')):
     mongo.store_game(game.to_dict())
     count += 1
-    print(game)
-    print(game.moves)
+    if count % 1000 == 0:
+        print("{} games imported".format(count))

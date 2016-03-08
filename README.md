@@ -6,7 +6,8 @@ Some interesting links:
 
 For the initial prototyping I'm exporting games from (codekiddy's OTB-HQ) .si4 format to pgn. This will make it easier to manipulate, but less efficient. The latter part is a problem for later on however.
 
-Had to actually use SCID to port convert si4 to pgn. A real shortage of good info/modules in this area.
+Had to actually use SCID to port convert si4 to pgn. A real shortage of good info/modules in this area and then 
+`iconv -t UTF-8 -f ISO-8859-15 OTB-HQ.pgn > out.pgn` to convert to utf-8.
 
 Create the virtual environment with python3: 
 `mkvirtualenv --python=/usr/bin/python3 chess`
