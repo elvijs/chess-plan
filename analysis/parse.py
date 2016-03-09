@@ -3,21 +3,17 @@ __author__ = 'elvijs'
 NON_PRAWNS = {"N", "B", "R", "Q", "K"}
 
 
-class MoveParsingException(Exception):
-    def __init__(self, move, error):
+class MoveIsCastle(Exception):
+    def __init__(self, move):
         self.move = move
-        self.error = error
-
-    def __str__(self):
-        return "error parsing move {0}, error '{1}'".format(self.move, self.error)
 
 
 def parse_move(move_string):
     """
-    Remove checks and parse castles.
+    Remove checks and raise castle exceptions.
     """
     if move_string in ["0-0", "0-0-0"]:
-        raise MoveParsingException(move_string, "Not implemented yet")
+        raise MoveIsCastle(move_string)
 
     if move_string[0] in NON_PRAWNS:
         piece = move_string[0].lower()
