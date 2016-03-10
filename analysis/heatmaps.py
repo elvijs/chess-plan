@@ -1,5 +1,9 @@
+import pprint
 from analysis.parse import MoveIsCastle, parse_move
 from storage.storage import Mongo
+import logging
+
+logger = logging.getLogger("Heatmaps")
 
 __author__ = 'elvijs'
 
@@ -8,11 +12,19 @@ store = Mongo()
 SQUARE_TO_NUMBER_MAP = {"a": 0, "b": 1, "c": 2, "d": 3, "e": 4, "f": 5, "g": 6, "h": 7}
 
 
-def get_projects_from_eco(eco_code):
-    return store.games_coll.find({'eco': eco_code})
+def get_processed_heatmap_data(regex):
+    print("request sent")
+    games = get_games({'eco': {'$regex': regex}})
+    ret = produce_heatmap(games, "w", update_results_with_landing_info)
+
+    return ret
 
 
-def produce_heatmap(projects, piece_colour):
+def get_games(query):
+    return store.games_coll.find(query)
+
+
+def produce_heatmap(games, piece_colour, results_update_method):
     """
     Returns an array [d1, d2, ... d64], where each of the dicts represents
     a square in the following order: (a8, b8, c8 ... ,f1, g1, h1).
@@ -26,30 +38,43 @@ def produce_heatmap(projects, piece_colour):
       "k": {...},
       "all": {...}
     }
+    :piece_colour: - "w" or "b"
     """
     res = _get_init_heatmap()
 
-    for p in projects:
-        _update_results_arr_with_landing_info(p, res, piece_colour)
+    count = 0
+    for g in games:
+        try:
+            results_update_method(g, res, piece_colour)
+        except Exception as ex:
+            logger.exception(ex)
+            logger.error("happened on the following game:")
+
+        count += 1
+
+        if count % 100 == 0:
+            logger.info("{} projects processed".format(count))
+            logger.info("current map for a8:")
+            logger.info(pprint.pformat(res))
 
     return res
 
 
-def _update_results_arr_with_landing_info(project, partial_results_dict, piece_colour):
-    moves = project['moves']
+def update_results_with_landing_info(game, partial_results_dict, piece_colour):
+    moves = game['moves']
     if piece_colour == "w":
         move_offset = 0
     else:
         move_offset = 1
 
-    for i in range(move_offset, len(moves), 2):  # note that this (correctly) omits the last "result move"
+    for i in range(move_offset, len(moves) - 1, 2):  # note that this (correctly) omits the last "result move"
         try:
             piece, target_square = parse_move(moves[i])
             target_square_index = _convert_square_to_index(target_square)
             partial_results_dict[target_square_index][piece][piece_colour] += 1
             partial_results_dict[target_square_index]["all"][piece_colour] += 1
         except MoveIsCastle as ex:
-            print(ex)
+            logger.info(ex)
 
 
 def _convert_square_to_index(target_square_string):

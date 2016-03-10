@@ -12,7 +12,7 @@ def parse_move(move_string):
     """
     Remove checks, parse promotion and raise castle exceptions.
     """
-    if move_string in ["0-0", "0-0-0"]:
+    if move_string in ["0-0", "0-0-0", "0-0+", "0-0-0+"]:
         raise MoveIsCastle(move_string)
 
     if move_string[0] in NON_PRAWNS:
