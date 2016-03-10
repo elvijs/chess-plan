@@ -10,7 +10,7 @@ class MoveIsCastle(Exception):
 
 def parse_move(move_string):
     """
-    Remove checks and raise castle exceptions.
+    Remove checks, parse promotion and raise castle exceptions.
     """
     if move_string in ["0-0", "0-0-0"]:
         raise MoveIsCastle(move_string)
@@ -20,7 +20,7 @@ def parse_move(move_string):
     else:
         piece = "p"
 
-    if move_string[-1] == "+":
+    if move_string[-1] in {"+"}.union(NON_PRAWNS):
         target_square = move_string[-3:-1]
     else:
         target_square = move_string[-2:]
