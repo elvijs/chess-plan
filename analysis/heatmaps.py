@@ -1,4 +1,4 @@
-from analysis.parse import MoveParsingException, parse_move
+from analysis.parse import MoveIsCastle, parse_move
 from storage.storage import Mongo
 
 __author__ = 'elvijs'
@@ -48,7 +48,7 @@ def _update_results_arr_with_landing_info(project, partial_results_dict, piece_c
             target_square_index = _convert_square_to_index(target_square)
             partial_results_dict[target_square_index][piece][piece_colour] += 1
             partial_results_dict[target_square_index]["all"][piece_colour] += 1
-        except MoveParsingException as ex:
+        except MoveIsCastle as ex:
             print(ex)
 
 
