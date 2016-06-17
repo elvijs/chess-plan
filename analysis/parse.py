@@ -1,19 +1,33 @@
+import logging
+
 __author__ = 'elvijs'
 
+logger = logging.getLogger("Move parser")
+
+CHESS_PIECES = {"p", "n", "b", "r", "q", "k"}
+CHESS_SQUARE_LETTERS = {"a", "b", "c", "d", "e", "f", "g", "h"}
+CHESS_SQUARE_NUMBERS = {"1", "2", "3", "4", "5", "6", "7", "8"}
 NON_PRAWNS = {"N", "B", "R", "Q", "K"}
+CASTLE_MOVES = ["O-O", "O-O-O", "O-O+", "O-O-O+"]
 
 
-class MoveIsCastle(Exception):
-    def __init__(self, move):
-        self.move = move
-
-
-def parse_move(move_string):
+def get_move_landing_squares(move_string, colour):
     """
-    Remove checks, parse promotion and raise castle exceptions.
+    Remove checks, parse promotion.
+    :move_string: a move string to be parsed e.g. "Nb1", "Qxb4++",
+    :colour: should be either "w" or "b".
     """
-    if move_string in ["0-0", "0-0-0", "0-0+", "0-0-0+"]:
-        raise MoveIsCastle(move_string)
+    if move_string in CASTLE_MOVES:
+        if colour == "w":
+            if move_string == "O-O":
+                return [("k", "g1"), ("r", "f1")]
+            else:
+                return [("k", "c1"), ("r", "d1")]
+        else:
+            if move_string == "O-O":
+                return [("k", "g8"), ("r", "f8")]
+            else:
+                return [("k", "c8"), ("r", "d8")]
 
     if move_string[0] in NON_PRAWNS:
         piece = move_string[0].lower()
@@ -25,4 +39,12 @@ def parse_move(move_string):
     else:
         target_square = move_string[-2:]
 
-    return piece, target_square
+    try:
+        assert piece in CHESS_PIECES
+        assert target_square[0] in CHESS_SQUARE_LETTERS
+        assert target_square[1] in CHESS_SQUARE_NUMBERS
+    except AssertionError:
+        logger.info("AssertionError whilst parsing {}".format(move_string))
+        return [(None, None)]
+
+    return [(piece, target_square)]
