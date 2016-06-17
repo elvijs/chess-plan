@@ -4,3 +4,4 @@ python-dateutil==2.5.0
 flask==0.10.1
 gunicorn==19.4.5
 jinja2==2.8
+pytest==2.9.2
