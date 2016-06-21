@@ -1,6 +1,8 @@
-from analysis.parse import get_move_landing_squares
-from storage.storage import Mongo
 import logging
+import multiprocessing
+import time
+from storage.storage import Mongo
+from analysis.parse import get_move_landing_squares
 
 logger = logging.getLogger("Heatmaps")
 
@@ -9,21 +11,64 @@ __author__ = 'elvijs'
 store = Mongo()
 
 SQUARE_TO_NUMBER_MAP = {"a": 0, "b": 1, "c": 2, "d": 3, "e": 4, "f": 5, "g": 6, "h": 7}
+HEATMAP_SQUARE_KEYS = {"p", "n", "b", "r", "q", "k", "all"}
+PIECE_COLOURS = {"w", "b"}
+NUM_CPUS_TO_USE = multiprocessing.cpu_count()
 
 
-def get_processed_heatmap_data(regex):
+def get_landing_heatmap(regex):
     logger.info("request sent")
-    games = get_games({'eco': {'$regex': regex}})
-    ret = produce_heatmap(games, update_results_with_landing_info)
-
+    t1 = time.time()
+    games = list(get_games({'eco': {'$regex': regex}}))
+    t2 = time.time()
+    ret = produce_landing_heatmap(games)
+    t3 = time.time()
+    logger.info("heatmap produced in {0}s. Game lookup took {1}s; "
+                "heatmaps were computed in {2}s".format(t3-t1, t2-t1, t3-t2))
     return ret
+
+
+def get_landing_heatmap_in_parallel(regex, batchsize=1000):
+    """
+    1. Build a pool of :NUM_CPUS_TO_USE: processes.
+    2. Partition the games into the same number of chunks.
+    3. Produce heatmaps for each of the partitions in parallel.
+    4. Reduce the partition heatmaps to a single master heatmap.
+    """
+    logger.info("computing the heatmap in parallel")
+    t1 = time.time()
+    games = get_games({'eco': {'$regex': regex}})
+    partitioned_games = get_partitioned_cursor(games, batchsize)
+    t2 = time.time()
+    pool = multiprocessing.Pool(processes=NUM_CPUS_TO_USE,)
+    partial_heatmaps = pool.map(produce_landing_heatmap, partitioned_games)
+    ret = _get_init_heatmap()
+    for partial_heatmap in partial_heatmaps:
+        merge_second_heatmap_into_first(ret, partial_heatmap)
+    t3 = time.time()
+    logger.info("heatmap produced in {0}s. Game lookup and partitioning took {1}s; "
+                "heatmaps were computed in {2}s".format(t3-t1, t2-t1, t3-t2))
+    return ret
+
+
+def get_partitioned_cursor(cursor, batchsize):
+    batch_count = 0
+    batch = []
+    for doc in cursor:
+        batch_count += 1
+        batch.append(doc)
+        if batch_count >= batchsize:
+            yield batch
+            batch_count = 0
+            batch = []
+    yield batch
 
 
 def get_games(query):
     return store.games_coll.find(query)
 
 
-def produce_heatmap(games, results_update_method):
+def produce_landing_heatmap(games):
     """
     Returns an array [d1, d2, ... d64], where each of the dicts represents
     a square in the following order: (a8, b8, c8 ... ,f1, g1, h1).
@@ -39,13 +84,14 @@ def produce_heatmap(games, results_update_method):
     }
     :piece_colour: - "w" or "b"
     """
-    logger.info("{} games found".format(games.count()))
+    logger.info("{} games found".format(len(games)))
     res = _get_init_heatmap()
 
     count = 0
     for g in games:
         try:
-            results_update_method(g, res)
+            game_heatmap = compute_game_landing_heatmap(g)
+            merge_second_heatmap_into_first(res, game_heatmap)
         except Exception as ex:
             logger.exception(ex)
             logger.error("happened on the following game:")
@@ -59,7 +105,12 @@ def produce_heatmap(games, results_update_method):
     return res
 
 
-def update_results_with_landing_info(game, partial_results_dict):
+def compute_game_landing_heatmap(game):
+    """
+    Computes the landing heatmap for the provided game.
+    If an exception is encountered, return an empty heatmap.
+    """
+    ret = _get_init_heatmap()
     moves = game['moves']
     current_colour = "w"
     for i in range(0, len(moves) - 1, 1):  # note that this (correctly) omits the last "result move"
@@ -67,16 +118,25 @@ def update_results_with_landing_info(game, partial_results_dict):
             move_tuples = get_move_landing_squares(moves[i], current_colour)
             for (piece, target_square) in move_tuples:
                 if (piece, target_square) == (None, None):
-                    logger.info("move parsing error, continuing")
+                    logger.debug("move parsing error, continuing")
                     continue
                 target_square_index = _convert_square_to_index(target_square)
-                partial_results_dict[target_square_index][piece][current_colour] += 1
-                partial_results_dict[target_square_index]["all"][current_colour] += 1
+                ret[target_square_index][piece][current_colour] += 1
+                ret[target_square_index]["all"][current_colour] += 1
 
             current_colour = "b" if current_colour == "w" else "w"
         except Exception as ex:
             logger.info("exception whilst updating results with move string: {}".format(moves[i]))
             logger.exception(ex)
+            return _get_init_heatmap()
+    return ret
+
+
+def merge_second_heatmap_into_first(heatmap1, heatmap2):
+    for i in range(0, len(heatmap1), 1):
+        for k in HEATMAP_SQUARE_KEYS:
+            for c in PIECE_COLOURS:
+                heatmap1[i][k][c] += heatmap2[i][k][c]
 
 
 def _convert_square_to_index(target_square_string):

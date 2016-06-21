@@ -1,4 +1,4 @@
-from analysis.heatmaps import get_processed_heatmap_data
+from analysis.heatmaps import get_landing_heatmap
 
 __author__ = 'elvijs'
 
@@ -15,5 +15,5 @@ def hello_world(name=None):
 @app.route('/regex/<regex>')
 def my_form_post(regex=None):
     print("form worked")
-    heatmap = get_processed_heatmap_data(regex)
+    heatmap = get_landing_heatmap(regex)
     return jsonify(**{'heatmap': heatmap})

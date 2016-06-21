@@ -44,7 +44,7 @@ def get_move_landing_squares(move_string, colour):
         assert target_square[0] in CHESS_SQUARE_LETTERS
         assert target_square[1] in CHESS_SQUARE_NUMBERS
     except AssertionError:
-        logger.info("AssertionError whilst parsing {}".format(move_string))
+        logger.debug("AssertionError whilst parsing {}".format(move_string))
         return [(None, None)]
 
     return [(piece, target_square)]
