@@ -84,7 +84,7 @@ def produce_landing_heatmap(games):
     }
     :piece_colour: - "w" or "b"
     """
-    logger.info("{} games found".format(len(games)))
+    logger.debug("processing a batch of {} games".format(len(games)))
     res = _get_init_heatmap()
 
     count = 0
@@ -100,7 +100,7 @@ def produce_landing_heatmap(games):
         count += 1
 
         if count % 100 == 0:
-            logger.info("{} games processed".format(count))
+            logger.debug("{} games processed".format(count))
 
     return res
 
