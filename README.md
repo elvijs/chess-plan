@@ -6,6 +6,9 @@ python runapp.py
 
 # Future plans 
 
+Improve parsing - it currently doesn't parse promotions, en passants and possibly other moves.
+ To start working on it, lower the logging output to DEBUG and inspect logs.
+
 JavaScript generators:
 - AngularSeed
 - Yeoman
