@@ -1,4 +1,5 @@
-from analysis.parse import get_move_landing_squares, get_board, get_initial_board
+from analysis.parse import get_move_landing_squares
+from analysis.board import get_board, get_initial_board
 
 __author__ = 'elvijs'
 

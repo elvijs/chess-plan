@@ -1,6 +1,7 @@
 import logging
 import multiprocessing
 import time
+from analysis import ALLOWED_COLOURS
 from storage.storage import Mongo
 from analysis.parse import get_move_landing_squares
 
@@ -12,7 +13,6 @@ store = Mongo()
 
 SQUARE_TO_NUMBER_MAP = {"a": 0, "b": 1, "c": 2, "d": 3, "e": 4, "f": 5, "g": 6, "h": 7}
 HEATMAP_SQUARE_KEYS = {"p", "n", "b", "r", "q", "k", "all"}
-PIECE_COLOURS = {"w", "b"}
 NUM_CPUS_TO_USE = multiprocessing.cpu_count()
 
 
@@ -135,7 +135,7 @@ def compute_game_landing_heatmap(game):
 def merge_second_heatmap_into_first(heatmap1, heatmap2):
     for i in range(0, len(heatmap1), 1):
         for k in HEATMAP_SQUARE_KEYS:
-            for c in PIECE_COLOURS:
+            for c in ALLOWED_COLOURS:
                 heatmap1[i][k][c] += heatmap2[i][k][c]
 
 
