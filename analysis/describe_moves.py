@@ -1,3 +1,4 @@
+import re
 from analysis import ALLOWED_COLOURS, CASTLE_MOVES, PIECES, PIECE_IDENTIFIERS, SQUARE_LETTERS, SQUARE_NUMBERS, logger
 
 __author__ = 'elvijs'
@@ -130,12 +131,22 @@ def get_from_square(piece_letter, to_square, board):
 
 
 def is_check(move_string):
-    pass
+    if re.search(r"(\+)", move_string):
+        return True
+    else:
+        return False
 
 
 def is_capture(move_string):
-    pass
+    capture_regex = r"(x|:|[a-h]{2})"
+    if re.search(capture_regex, move_string):
+        return True
+    else:
+        return False
 
 
 def is_checkmate(move_string):
-    pass
+    if re.search(r"(\+\+)", move_string):
+        return True
+    else:
+        return False
