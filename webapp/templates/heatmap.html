@@ -19,6 +19,8 @@
 <form name="myform" onSubmit="return handleClick()">
     <input name="Submit" type="submit" value="Do a search">
     <input type="text" id="regexinput" placeholder="B02.*">
+    <input type="text" id="from-move" placeholder="0">
+    <input type="text" id="to-move" placeholder="100">
 </form>
 <button id="w-btn" class="button button-primary">White</button>
 <button id="b-btn" class="button">Black</button>
@@ -44,13 +46,15 @@
     var regex = null;
 
     function handleClick(event) {
-        console.log(document.getElementById("regexinput").value);
-        draw(document.getElementById("regexinput").value);
+        var regex = document.getElementById("regexinput").value;
+        var fromMove = document.getElementById("from-move").value;
+        var toMove = document.getElementById("to-move").value;
+        drawHeatmap(regex, fromMove, toMove);
         return false;
     }
 
-    function draw(regex) {
-        var url = 'http://127.0.0.1:5000/regex/' + regex;
+    function drawHeatmap(regex, fromMove, toMove) {
+        var url = 'http://127.0.0.1:5000/heatmap?regex=' + regex + '&from=' + fromMove + '&to=' + toMove;
         d3.json(url, function (err, data) {
             console.log(data);
             var hm = new ChessDataViz.HeatMap('#hm', null, data.heatmap);
