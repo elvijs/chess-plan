@@ -1,4 +1,5 @@
 from flask import request
+import analysis
 from analysis.heatmaps import get_landing_heatmap, get_landing_heatmap_in_parallel
 
 __author__ = 'elvijs'
@@ -16,8 +17,10 @@ def hello_world(name=None):
 @app.route('/heatmap')
 def get_heatmap():
     regex = request.args.get('regex')
-    from_move = request.args.get('from')
-    to_move = request.args.get('to')
+    from_move = int(request.args.get('from'))
+    to_move = int(request.args.get('to'))
     print("getting heatmap for opening {0}, between moves {1} and {2}".format(regex, from_move, to_move))
-    heatmap = get_landing_heatmap_in_parallel(regex, from_move, to_move)
+    analysis.from_move = from_move
+    analysis.to_move = to_move
+    heatmap = get_landing_heatmap_in_parallel(regex)
     return jsonify(**{'heatmap': heatmap})

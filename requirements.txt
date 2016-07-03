@@ -5,3 +5,4 @@ flask==0.10.1
 gunicorn==19.4.5
 jinja2==2.8
 pytest==2.9.2
+ppft==1.6.4.6

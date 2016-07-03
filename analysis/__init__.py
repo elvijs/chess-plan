@@ -16,3 +16,5 @@ SQUARE_NUMBERS = {"1", "2", "3", "4", "5", "6", "7", "8"}
 NON_PRAWNS = {"N", "B", "R", "Q", "K"}
 CASTLE_MOVES = ["O-O", "O-O-O", "O-O+", "O-O-O+"]
 ALLOWED_COLOURS = {"b", "w"}
+from_move = 0
+to_move = 100

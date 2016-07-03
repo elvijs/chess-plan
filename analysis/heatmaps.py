@@ -1,7 +1,7 @@
 import logging
+import analysis
 import multiprocessing
 import time
-from analysis import ALLOWED_COLOURS
 from storage.storage import Mongo
 from analysis.parse import get_move_landing_squares
 
@@ -41,6 +41,7 @@ def get_landing_heatmap_in_parallel(regex, batchsize=1000):
     partitioned_games = get_partitioned_cursor(games, batchsize)
     t2 = time.time()
     pool = multiprocessing.Pool(processes=NUM_CPUS_TO_USE,)
+
     partial_heatmaps = pool.map(produce_landing_heatmap, partitioned_games)
     ret = _get_init_heatmap()
     for partial_heatmap in partial_heatmaps:
@@ -90,7 +91,7 @@ def produce_landing_heatmap(games):
     count = 0
     for g in games:
         try:
-            game_heatmap = compute_game_landing_heatmap(g)
+            game_heatmap = compute_game_landing_heatmap(g, analysis.from_move, analysis.to_move)
             merge_second_heatmap_into_first(res, game_heatmap)
         except Exception as ex:
             logger.exception(ex)
@@ -105,7 +106,7 @@ def produce_landing_heatmap(games):
     return res
 
 
-def compute_game_landing_heatmap(game):
+def compute_game_landing_heatmap(game, from_move, to_move):
     """
     Computes the landing heatmap for the provided game.
     If an exception is encountered, return an empty heatmap.
@@ -113,7 +114,8 @@ def compute_game_landing_heatmap(game):
     ret = _get_init_heatmap()
     moves = game['moves']
     current_colour = "w"
-    for i in range(0, len(moves) - 1, 1):  # note that this (correctly) omits the last "result move"
+    upper_limit = min(to_move*2, len(moves))
+    for i in range(from_move, upper_limit, 1):
         try:
             move_tuples = get_move_landing_squares(moves[i], current_colour)
             for (piece, target_square) in move_tuples:
@@ -135,7 +137,7 @@ def compute_game_landing_heatmap(game):
 def merge_second_heatmap_into_first(heatmap1, heatmap2):
     for i in range(0, len(heatmap1), 1):
         for k in HEATMAP_SQUARE_KEYS:
-            for c in ALLOWED_COLOURS:
+            for c in analysis.ALLOWED_COLOURS:
                 heatmap1[i][k][c] += heatmap2[i][k][c]
 
 
