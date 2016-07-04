@@ -43,7 +43,7 @@ def get_landing_heatmap_in_parallel(regex, batchsize=1000):
     pool = multiprocessing.Pool(processes=NUM_CPUS_TO_USE,)
 
     partial_heatmaps = pool.map(produce_landing_heatmap_dirty_version, partitioned_games)
-    ret = _get_init_heatmap()
+    ret = _get_starting_heatmap()
     for partial_heatmap in partial_heatmaps:
         merge_second_heatmap_into_first(ret, partial_heatmap)
     t3 = time.time()
@@ -86,7 +86,7 @@ def produce_landing_heatmap(games, from_move=0, to_move=100):
     :piece_colour: - "w" or "b"
     """
     logger.debug("processing a batch of {} games".format(len(games)))
-    res = _get_init_heatmap()
+    res = _get_starting_heatmap()
 
     count = 0
     for g in games:
@@ -123,7 +123,7 @@ def produce_landing_heatmap_dirty_version(games):
     :piece_colour: - "w" or "b"
     """
     logger.debug("processing a batch of {} games".format(len(games)))
-    res = _get_init_heatmap()
+    res = _get_starting_heatmap()
 
     count = 0
     for g in games:
@@ -148,7 +148,7 @@ def compute_game_landing_heatmap(game, from_move, to_move):
     Computes the landing heatmap for the provided game.
     If an exception is encountered, return an empty heatmap.
     """
-    ret = _get_init_heatmap()
+    ret = _get_starting_heatmap()
     moves = game['moves']
     current_colour = "w"
     upper_limit = min(to_move*2, len(moves))
@@ -167,7 +167,7 @@ def compute_game_landing_heatmap(game, from_move, to_move):
         except Exception as ex:
             logger.info("exception whilst updating results with move string: {}".format(moves[i]))
             logger.exception(ex)
-            return _get_init_heatmap()
+            return _get_starting_heatmap()
     return ret
 
 
@@ -184,7 +184,7 @@ def _convert_square_to_index(target_square_string):
     return ((8 - number) * 8) + SQUARE_TO_NUMBER_MAP[letter]
 
 
-def _get_init_heatmap():
+def _get_starting_heatmap():
     ret = []
     for i in range(64):
         ret.append(_get_basic_square_block())
