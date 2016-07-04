@@ -42,7 +42,7 @@ def get_landing_heatmap_in_parallel(regex, batchsize=1000):
     t2 = time.time()
     pool = multiprocessing.Pool(processes=NUM_CPUS_TO_USE,)
 
-    partial_heatmaps = pool.map(produce_landing_heatmap, partitioned_games)
+    partial_heatmaps = pool.map(produce_landing_heatmap_dirty_version, partitioned_games)
     ret = _get_init_heatmap()
     for partial_heatmap in partial_heatmaps:
         merge_second_heatmap_into_first(ret, partial_heatmap)
@@ -69,7 +69,44 @@ def get_games(query):
     return store.games_coll.find(query)
 
 
-def produce_landing_heatmap(games):
+def produce_landing_heatmap(games, from_move=0, to_move=100):
+    """
+    Returns an array [d1, d2, ... d64], where each of the dicts represents
+    a square in the following order: (a8, b8, c8 ... ,f1, g1, h1).
+    Each of the dicts should look like:
+    {
+      "p": {"w": 10474, "b": 0},
+      "n": {"w": 15363, "b": 14358},
+      "b": {...},
+      "r": {...},
+      "q": {...},
+      "k": {...},
+      "all": {...}
+    }
+    :piece_colour: - "w" or "b"
+    """
+    logger.debug("processing a batch of {} games".format(len(games)))
+    res = _get_init_heatmap()
+
+    count = 0
+    for g in games:
+        try:
+            game_heatmap = compute_game_landing_heatmap(g, from_move, to_move)
+            merge_second_heatmap_into_first(res, game_heatmap)
+        except Exception as ex:
+            logger.exception(ex)
+            logger.error("happened on the following game:")
+            logger.error(g)
+
+        count += 1
+
+        if count % 100 == 0:
+            logger.debug("{} games processed".format(count))
+
+    return res
+
+
+def produce_landing_heatmap_dirty_version(games):
     """
     Returns an array [d1, d2, ... d64], where each of the dicts represents
     a square in the following order: (a8, b8, c8 ... ,f1, g1, h1).
