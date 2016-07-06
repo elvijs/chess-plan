@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+    <script src="https://code.jquery.com/jquery-3.0.0.min.js"></script>
     <link href="{{url_for('static', filename='js/chess-dataviz/dist/ChessDataViz.css')}}" rel="stylesheet">
     <link href="{{url_for('static', filename='style.css')}}" rel="stylesheet">
     <title></title>
@@ -46,7 +47,7 @@
     var regex = null;
 
     function handleClick(event) {
-        var regex = document.getElementById("regexinput").value;
+        var regex = $('#regexinput').val();
         var fromMove = document.getElementById("from-move").value;
         var toMove = document.getElementById("to-move").value;
         drawHeatmap(regex, fromMove, toMove);
