@@ -1,9 +1,11 @@
+import copy
 import logging
-import analysis
 import multiprocessing
-import time
-from storage.storage import Mongo
+import chess
+
+import analysis
 from analysis.parse import get_move_landing_squares
+from storage.storage import Mongo
 
 logger = logging.getLogger("Heatmaps")
 
@@ -16,188 +18,188 @@ HEATMAP_SQUARE_KEYS = {"p", "n", "b", "r", "q", "k", "all"}
 NUM_CPUS_TO_USE = multiprocessing.cpu_count()
 
 
-def get_landing_heatmap(regex):
-    logger.info("request sent")
-    t1 = time.time()
-    games = list(get_games({'eco': {'$regex': regex}}))
-    t2 = time.time()
-    ret = produce_landing_heatmap(games)
-    t3 = time.time()
-    logger.info("heatmap produced in {0}s. Game lookup took {1}s; "
-                "heatmaps were computed in {2}s".format(t3-t1, t2-t1, t3-t2))
-    return ret
-
-
-def get_landing_heatmap_in_parallel(regex, batchsize=1000):
+class Heatmap:
     """
-    1. Build a pool of :NUM_CPUS_TO_USE: processes.
-    2. Partition the games into the same number of chunks.
-    3. Produce heatmaps for each of the partitions in parallel.
-    4. Reduce the partition heatmaps to a single master heatmap.
+    A base class for all heatmaps.
+    Consumes games and supports addition.
     """
-    logger.info("computing the heatmap in parallel")
-    t1 = time.time()
-    games = get_games({'eco': {'$regex': regex}})
-    partitioned_games = get_partitioned_cursor(games, batchsize)
-    t2 = time.time()
-    pool = multiprocessing.Pool(processes=NUM_CPUS_TO_USE,)
+    def __init__(self):
+        self.state = self._get_starting_heatmap()
 
-    partial_heatmaps = pool.map(produce_landing_heatmap_dirty_version, partitioned_games)
-    ret = _get_starting_heatmap()
-    for partial_heatmap in partial_heatmaps:
-        merge_second_heatmap_into_first(ret, partial_heatmap)
-    t3 = time.time()
-    logger.info("heatmap produced in {0}s. Game lookup and partitioning took {1}s; "
-                "heatmaps were computed in {2}s".format(t3-t1, t2-t1, t3-t2))
-    return ret
+    def __add__(self, other):
+        new_heatmap = copy.deepcopy(Heatmap)
+        new_heatmap.update_with_another_heatmap(other)
+        return new_heatmap
 
+    def update_with_a_game(self, game, from_move, to_move):
+        """
+        Update the heatmap with the information from the provided game object.
 
-def get_partitioned_cursor(cursor, batchsize):
-    batch_count = 0
-    batch = []
-    for doc in cursor:
-        batch_count += 1
-        batch.append(doc)
-        if batch_count >= batchsize:
-            yield batch
-            batch_count = 0
-            batch = []
-    yield batch
-
-
-def get_games(query):
-    return store.games_coll.find(query)
-
-
-def produce_landing_heatmap(games, from_move=0, to_move=100):
-    """
-    Returns an array [d1, d2, ... d64], where each of the dicts represents
-    a square in the following order: (a8, b8, c8 ... ,f1, g1, h1).
-    Each of the dicts should look like:
-    {
-      "p": {"w": 10474, "b": 0},
-      "n": {"w": 15363, "b": 14358},
-      "b": {...},
-      "r": {...},
-      "q": {...},
-      "k": {...},
-      "all": {...}
-    }
-    :piece_colour: - "w" or "b"
-    """
-    logger.debug("processing a batch of {} games".format(len(games)))
-    res = _get_starting_heatmap()
-
-    count = 0
-    for g in games:
+        :param game: a dict() object that contains a 'moves' attribute.
+        :param from_move: From which move to start updating the heatmap.
+        :param to_move: At which move stop updating the heatmap.
+        """
+        game_heatmap = type(self)()  # this will be called from subclasses,
+        # so need to ensure the right instance created
+        game_heatmap.state = self._compute_game_heatmap_state(game, from_move, to_move)
         try:
-            game_heatmap = compute_game_landing_heatmap(g, from_move, to_move)
-            merge_second_heatmap_into_first(res, game_heatmap)
+            self.update_with_another_heatmap(game_heatmap)
         except Exception as ex:
             logger.exception(ex)
-            logger.error("happened on the following game:")
-            logger.error(g)
+            logger.error("happened on the following game: {}".format(game))
 
-        count += 1
+    def _compute_game_heatmap_state(self, game, from_move, to_move):
+        """
+        Implement in subclasses.
 
-        if count % 100 == 0:
-            logger.debug("{} games processed".format(count))
+        :param game: an instance of a Game.
+        :param from_move: from which move to start updating the heatmap.
+        :param to_move: at which move stop updating the heatmap.
+        """
+        raise Exception("implement in subclasses")
 
-    return res
+    def update_with_another_heatmap(self, heatmap):
+        """
+        Update this heatmap with information from the heatmap passed in.
+        :param heatmap: a heatmap to be incorporated.
+        :type heatmap: Heatmap
+        """
+        for i in range(0, len(self.state), 1):
+            for k in HEATMAP_SQUARE_KEYS:
+                for c in analysis.ALLOWED_COLOURS:
+                    self.state[i][k][c] += heatmap.state[i][k][c]
+
+    def _get_starting_heatmap(self):
+        """
+        Return the initial state for a heatmap.
+        """
+        ret = []
+        for i in range(64):
+            ret.append(self._get_basic_square_block())
+        return ret
+
+    @staticmethod
+    def _get_basic_square_block():
+        return dict(
+            p=dict(w=0, b=0),
+            n=dict(w=0, b=0),
+            b=dict(w=0, b=0),
+            r=dict(w=0, b=0),
+            q=dict(w=0, b=0),
+            k=dict(w=0, b=0),
+            all=dict(w=0, b=0)
+        )
 
 
-def produce_landing_heatmap_dirty_version(games):
+class LandingHeatmap(Heatmap):
     """
-    Returns an array [d1, d2, ... d64], where each of the dicts represents
-    a square in the following order: (a8, b8, c8 ... ,f1, g1, h1).
-    Each of the dicts should look like:
-    {
-      "p": {"w": 10474, "b": 0},
-      "n": {"w": 15363, "b": 14358},
-      "b": {...},
-      "r": {...},
-      "q": {...},
-      "k": {...},
-      "all": {...}
-    }
-    :piece_colour: - "w" or "b"
+    A heatmap of pieces landing on squares (as opposed to computing the lapse time on a square).
     """
-    logger.debug("processing a batch of {} games".format(len(games)))
-    res = _get_starting_heatmap()
+    def _compute_game_heatmap_state(self, game, from_move, to_move):
+        """
+        Computes the landing heatmap for the provided game.
+        If an exception is encountered, return an empty heatmap.
 
-    count = 0
-    for g in games:
+        :param game: a dict() object that contains a 'moves' attribute.
+        :param from_move: optional. From which move to start updating the heatmap.
+        :param to_move: optional. At which move stop updating the heatmap.
+        """
+        ret = self._get_starting_heatmap()
+        moves = game['moves']
+        current_colour = "w"
+        upper_limit = min(to_move * 2, len(moves) - 1)
+        lower_limit = min(from_move * 2, len(moves) - 1)
+        for i in range(lower_limit, upper_limit, 1):
+            try:
+                move_tuples = get_move_landing_squares(moves[i], current_colour)
+                for (piece, target_square) in move_tuples:
+                    if (piece, target_square) == (None, None):
+                        logger.debug("move parsing error, continuing")
+                        continue
+                    target_square_index = _convert_square_to_index(target_square)
+                    ret[target_square_index][piece][current_colour] += 1
+                    ret[target_square_index]["all"][current_colour] += 1
+
+                current_colour = "b" if current_colour == "w" else "w"
+            except Exception as ex:
+                logger.info("exception whilst updating results with move string: {}".format(moves[i]))
+                logger.exception(ex)
+                return self._get_starting_heatmap()
+        return ret
+
+
+class LapseHeatmap(Heatmap):
+    """
+    A heatmap of piece lapse time on squares.
+    """
+    def _compute_game_heatmap_state(self, game, from_move, to_move):
+        """
+        Computes the lapse heatmap for the provided game.
+        If an exception is encountered, return an empty heatmap.
+
+        :param game: a dict() object that contains a 'moves' attribute.
+        :param from_move: optional. From which move to start updating the heatmap.
+        :param to_move: optional. At which move stop updating the heatmap.
+        """
+        heatmap_state = self._get_starting_heatmap()
+        moves = game['moves']
+        upper_limit = min(to_move * 2, len(moves) - 1)
+        lower_limit = min(from_move * 2, len(moves) - 1)
+        board = chess.Board()
         try:
-            game_heatmap = compute_game_landing_heatmap(g, analysis.from_move, analysis.to_move)
-            merge_second_heatmap_into_first(res, game_heatmap)
-        except Exception as ex:
-            logger.exception(ex)
-            logger.error("happened on the following game:")
-            logger.error(g)
-
-        count += 1
-
-        if count % 100 == 0:
-            logger.debug("{} games processed".format(count))
-
-    return res
-
-
-def compute_game_landing_heatmap(game, from_move, to_move):
-    """
-    Computes the landing heatmap for the provided game.
-    If an exception is encountered, return an empty heatmap.
-    """
-    ret = _get_starting_heatmap()
-    moves = game['moves']
-    current_colour = "w"
-    upper_limit = min(to_move*2, len(moves))
-    for i in range(from_move, upper_limit, 1):
-        try:
-            move_tuples = get_move_landing_squares(moves[i], current_colour)
-            for (piece, target_square) in move_tuples:
-                if (piece, target_square) == (None, None):
-                    logger.debug("move parsing error, continuing")
-                    continue
-                target_square_index = _convert_square_to_index(target_square)
-                ret[target_square_index][piece][current_colour] += 1
-                ret[target_square_index]["all"][current_colour] += 1
-
-            current_colour = "b" if current_colour == "w" else "w"
+            for i in range(0, upper_limit, 1):
+                board.push_san(moves[i])
+                if lower_limit <= i:
+                    self._update_state_with_board(heatmap_state, board)
         except Exception as ex:
             logger.info("exception whilst updating results with move string: {}".format(moves[i]))
             logger.exception(ex)
-            return _get_starting_heatmap()
-    return ret
+            logger.info("board: \n")
+            logger.info(board.__str__())
+            return self._get_starting_heatmap()
+        return heatmap_state
+
+    @staticmethod
+    def _update_state_with_board(state, board):
+        """
+        Update self.state with the current board information.
+
+        TODO: move to the chess module formalism.
+        :param board: the current board.
+        :type board: chess.Board
+        """
+        for i, square in enumerate(chess.SQUARES_180):
+            piece = board.piece_at(square)
+            if piece:
+                symbol = piece.symbol().lower()
+                colour = _convert_color_to_string(piece.color)
+                state[i][symbol][colour] += 1
+                state[i]['all'][colour] += 1
 
 
-def merge_second_heatmap_into_first(heatmap1, heatmap2):
-    for i in range(0, len(heatmap1), 1):
-        for k in HEATMAP_SQUARE_KEYS:
-            for c in analysis.ALLOWED_COLOURS:
-                heatmap1[i][k][c] += heatmap2[i][k][c]
+def _convert_color_to_string(color):
+    """
+    Converts the chess module's color to "b" and "w".
+    :param color:
+    :return:
+    """
+    if color:
+        return "w"
+    else:
+        return "b"
 
 
 def _convert_square_to_index(target_square_string):
+    """
+    a8 --> 0
+    h1 --> 63
+
+    Corresponds to the squares as described in chess.SQUARES_180.
+
+    :param target_square_string: a move in the algebraic chess notation
+    :return: an index representing the sought square
+    :rtype: int
+    """
     letter = target_square_string[0]
     number = int(target_square_string[1])
     return ((8 - number) * 8) + SQUARE_TO_NUMBER_MAP[letter]
-
-
-def _get_starting_heatmap():
-    ret = []
-    for i in range(64):
-        ret.append(_get_basic_square_block())
-    return ret
-
-
-def _get_basic_square_block():
-    return dict(
-        p=dict(w=0, b=0),
-        n=dict(w=0, b=0),
-        b=dict(w=0, b=0),
-        r=dict(w=0, b=0),
-        q=dict(w=0, b=0),
-        k=dict(w=0, b=0),
-        all=dict(w=0, b=0)
-    )
