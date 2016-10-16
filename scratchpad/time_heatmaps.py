@@ -2,7 +2,8 @@ __author__ = 'elvijs'
 
 import time
 import settings
-from analysis.heatmaps import get_landing_heatmap_in_parallel, get_landing_heatmap
+from analysis.heatmaps import get_landing_heatmap_in_parallel
+from analysis.compute import get_landing_heatmap, get_landing_heatmap_in_parallel
 
 
 def time_fn(function, *args, **kwargs):

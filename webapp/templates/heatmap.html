@@ -35,8 +35,15 @@
     <option value="k">Kings</option>
 </select>
 
-<div id="hm" class="cdv-heatmap">
-    <p>The graph should appear here</p>
+
+<span>Landing heatmap</span>
+<div id="landing_heatmap" class="cdv-heatmap">
+    <span>Placeholder</span>
+</div>
+
+<span> Lapse heatmap</span>
+<div id="lapse_heatmap" class="cdv-heatmap">
+    <span>Placeholder</span>
 </div>
 
 <script type=text/javascript src="{{url_for('static', filename='test.js') }}"></script>
@@ -50,15 +57,21 @@
         var regex = $('#regexinput').val();
         var fromMove = document.getElementById("from-move").value;
         var toMove = document.getElementById("to-move").value;
-        drawHeatmap(regex, fromMove, toMove);
+
+        d3.select('#w-btn').classed('button-primary', true);
+        d3.select('#b-btn').classed('button-primary', false);
+        d3.select('#piece-select').node().value = 'all';
+
+        drawHeatmaps(regex, fromMove, toMove);
         return false;
     }
 
-    function drawHeatmap(regex, fromMove, toMove) {
+    function drawHeatmaps(regex, fromMove, toMove) {
         var url = 'http://127.0.0.1:5000/heatmap?regex=' + regex + '&from=' + fromMove + '&to=' + toMove;
         d3.json(url, function (err, data) {
             console.log(data);
-            var hm = new ChessDataViz.HeatMap('#hm', null, data.heatmap);
+            var landing_heatmap = new ChessDataViz.HeatMap('#landing_heatmap', null, data.landing_heatmap);
+            var lapse_heatmap = new ChessDataViz.HeatMap('#lapse_heatmap', null, data.lapse_heatmap);
 
             var wButton = d3.select('#w-btn');
             var bButton = d3.select('#b-btn');
@@ -85,7 +98,8 @@
                         piece: getSelectedPiece()
                     }
                 };
-                hm.options(settings);
+                landing_heatmap.options(settings);
+                lapse_heatmap.options(settings);
             }
 
             pieceSelector.on('click', function () {
