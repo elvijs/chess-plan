@@ -1,7 +1,7 @@
 import os
 from lib.pgnparser.pgn import GameIterator
 import settings.settings as csettings
-import storage.storage as store
+import storage.games as store
 
 __author__ = 'elvijs'
 

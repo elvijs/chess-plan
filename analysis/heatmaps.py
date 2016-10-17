@@ -5,7 +5,7 @@ import chess
 
 import analysis
 from analysis.parse import get_move_landing_squares
-from storage.storage import Mongo
+from storage.games import Mongo
 
 logger = logging.getLogger("Heatmaps")
 
