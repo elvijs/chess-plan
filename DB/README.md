@@ -11,3 +11,4 @@ The following will come in handy:
 `7z x PACKAGE.7z`
 
 This will populate the folder with a Scid DB (\*.sg4, \*.si4 and \*.sn4 files).
+You can finally convert to PGN using sciDB (found on sourceforge)
