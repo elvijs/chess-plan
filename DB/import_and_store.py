@@ -5,8 +5,6 @@ import storage.games as store
 
 __author__ = 'elvijs'
 
-LIMIT = 10000
-
 if __name__ == "__main__":
     mongo = store.Mongo()
     count = 0

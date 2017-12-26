@@ -1,15 +1,23 @@
-# Set up instructions
-```
-mkvirtualenv --python=/usr/bin/python3 python3
-workon chess
-pip install -r requirements.txt
-python runapp.py
-```
+# Get started
+
+If the initial setup is complete, then the following will do.
+
+`workon chess`
+`python runapp.py`
+
+The current state of the project admits one to query chess games by their ECO codes,
+select a "from" move and "to" move (e.g. moves 10 and 20),
+and view two heatmaps:
+ * one of pieces landing on squares, and
+ * one of lapse time of pieces on squares.
 
 # Future plans 
 
 ## Immediate future
 
+* Develop a few stories around a few different openings. Use for example [365chess](https://www.365chess.com/eco.php) to pick out openings that I know something about.
+
+* Understand how many games are rejected due to bad parsing.
 Improve the parsing of moves. There are a lot of rejected games due to comments etc.
 Move the landing heatmap to using the chess module and make sure we log parsing errors.
 Then simply add handling for the common cases.
@@ -53,20 +61,18 @@ Notes for self:
 
 # Notes on the current build
 
+## Set up instructions
+
+Download https://ebemunk.com/chess-dataviz/ and unzip in `webapp/static/js/chess-dataviz`.
+
+```
+mkvirtualenv --python=/usr/bin/python3 python3 -a `pwd`
+workon chess
+pip install -r requirements.txt
+python runapp.py
+```
+
 For the initial prototyping I'm exporting games from (codekiddy's OTB-HQ) .si4 format to pgn. This will make it easier to manipulate, but less efficient. The latter part is a problem for later on however.
 
 Had to actually use SCID to port convert si4 to pgn. A real shortage of good info/modules in this area and then 
 `iconv -t UTF-8 -f ISO-8859-15 OTB-HQ.pgn > out.pgn` to convert to utf-8.
-
-The current state of the project admits one to query chess games by their ECO codes,
-select a "from" move and "to" move (e.g. moves 10 and 20),
-and view two heatmaps:
- * one of pieces landing on squares, and
- * one of lapse time of pieces on squares.
-
-Create the virtual environment with python3: 
-`mkvirtualenv --python=/usr/bin/python3 chess`
-
-Use this [sexy JS lib](http://ebemunk.github.io/chess-dataviz/) for visualisations.
-- [A potentially useful python module for prototyping](https://pypi.python.org/pypi/python-chess)
-- [A collection of resources on chess](https://chessprogramming.wikispaces.com/). Seems focused on writing chess engines.
