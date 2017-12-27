@@ -1,21 +1,16 @@
 import copy
 import logging
-import multiprocessing
-import chess
+import chess  # TODO: include in requirements.txt
 
 import analysis
 from analysis.parse import get_move_landing_squares
-from storage.games import Mongo
 
 logger = logging.getLogger("Heatmaps")
 
 __author__ = 'elvijs'
 
-store = Mongo()
-
 SQUARE_TO_NUMBER_MAP = {"a": 0, "b": 1, "c": 2, "d": 3, "e": 4, "f": 5, "g": 6, "h": 7}
 HEATMAP_SQUARE_KEYS = {"p", "n", "b", "r", "q", "k", "all"}
-NUM_CPUS_TO_USE = multiprocessing.cpu_count()
 
 
 class Heatmap:

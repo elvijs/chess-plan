@@ -15,5 +15,5 @@ def time_fn(function, *args, **kwargs):
 
 if __name__ == "__main__":
     alekhine_regex = '^B0[2-5].*'
-    time_fn(get_landing_heatmap_in_parallel, alekhine_regex)
-    time_fn(get_landing_heatmap, alekhine_regex)
+    # time_fn(get_landing_heatmap_in_parallel, alekhine_regex)
+    # time_fn(get_landing_heatmap, alekhine_regex)
