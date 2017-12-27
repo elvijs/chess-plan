@@ -57,7 +57,7 @@ def _get_clean_move(move: str):
     Remove exclamation marks and question marks and
     check if the rest of the move is sensible
     """
-    return re.sub('[!\?\+-]', '', move)
+    return re.sub('[!\?\+]', '', move)
 
 
 if __name__ == "__main__":
