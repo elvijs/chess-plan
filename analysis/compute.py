@@ -21,7 +21,8 @@ class HeatmapManager:
         self._db_client = Mongo()
         self._pool = multiprocessing.Pool(processes=num_processes)
 
-    def compute_landing_heatmap(self, regex: str, from_move: int, to_move: int, batch_size: int=1000):
+    def compute_landing_heatmap(self, regex: str, from_move: int, to_move: int,
+                                batch_size: int=1000):
         """
         1. Partition the games into chunks of size :batch_size:.
         2. Produce heatmaps for each of the partitions in parallel.
