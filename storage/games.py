@@ -36,10 +36,8 @@ def _get_clean_moves(dirty_moves: list) -> list:
     """
     clean_moves = []
     for i, move in enumerate(dirty_moves):
-        if _is_dirty(move):
-            pass
-        else:
-            clean_moves.append(move)
+        if not _is_dirty(move):
+            clean_moves.append(_get_clean_move(move))
 
     return clean_moves
 
@@ -52,6 +50,15 @@ def _is_dirty(move: str) -> bool:
     if result:
         return True
     return False
+
+
+def _get_clean_move(move: str):
+    """
+    Remove exclamation marks and question marks and
+    check if the rest of the move is sensible
+    """
+    return re.sub('[!\?\+-]', '', move)
+
 
 if __name__ == "__main__":
     print("cleaning the moves")
