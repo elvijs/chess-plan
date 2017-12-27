@@ -9,6 +9,7 @@ class Mongo:
         self.client = MongoClient()
         self.db = self.client['chessplan']
         self.games_coll = self.db.games
+        self.heatmap_requests_coll = self.db.heatmap_requests
 
     def store_game(self, game_doc):
         self.games_coll.insert(game_doc)
