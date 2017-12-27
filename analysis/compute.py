@@ -31,6 +31,7 @@ class HeatmapManager:
         logger.info("computing the landing heatmap in parallel")
         t1 = time.time()
         games = self._get_games({'eco': {'$regex': regex}})
+        logger.info("{} games found".format(games.count()))
         params = dict(
             from_move=from_move,
             to_move=to_move,
@@ -59,6 +60,7 @@ class HeatmapManager:
         logger.info("computing the lapse heatmap")
         t1 = time.time()
         games = self._get_games({'eco': {'$regex': regex}})
+        logger.info("{} games found".format(games.count()))
         params = dict(
             from_move=from_move,
             to_move=to_move,
