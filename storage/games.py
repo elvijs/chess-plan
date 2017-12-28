@@ -1,18 +1,32 @@
 import re
+from typing import Optional
+
 from pymongo import MongoClient
 
 __author__ = 'elvijs'
 
 
 class Mongo:
-    def __init__(self):
+    def __init__(self) -> None:
         self.client = MongoClient()
         self.db = self.client['chessplan']
         self.games_coll = self.db.games
         self.heatmap_requests_coll = self.db.heatmap_requests
 
-    def store_game(self, game_doc):
+    def store_game(self, game_doc: dict) -> None:
         self.games_coll.insert(game_doc)
+
+    def store_heatmap(self, heatmap_id: str, heatmap: dict) -> None:
+        doc = {
+            'hid': heatmap_id,
+            'heatmap': heatmap,
+        }
+        self.heatmap_requests_coll.update({'hid': heatmap_id}, {'$set': doc}, upsert=True)
+
+    def get_heatmap(self, heatmap_id: str) -> Optional[dict]:
+        doc = self.heatmap_requests_coll.find_one({'hid': heatmap_id})
+        if doc:
+            return doc['heatmap']
 
 
 def clean_games(limit=None):

@@ -6,6 +6,7 @@ The computation module.
 """
 import time
 import multiprocessing
+from typing import Coroutine, Sized
 
 from storage.games import Mongo
 from analysis.heatmaps import logger, LandingHeatmap, LapseHeatmap
@@ -17,12 +18,40 @@ class HeatmapManager:
     * successful computation storage
     * parallelisation
     """
-    def __init__(self, num_processes=multiprocessing.cpu_count()):
+    def __init__(self, num_processes: int=multiprocessing.cpu_count()) -> None:
         self._db_client = Mongo()
         self._pool = multiprocessing.Pool(processes=num_processes)
 
-    def compute_landing_heatmap(self, regex: str, from_move: int, to_move: int,
-                                batch_size: int=1000):
+    def get_landing_heatmap(self, regex: str, from_move: int, to_move: int,
+                            batch_size: int = 1000) -> dict:
+        """
+        Check the cache for the result and if not there, compute (and then cache).
+        """
+        hid = self._get_heatmap_id('landing', regex, from_move, to_move)
+        stored_heatmap = self._db_client.get_heatmap(hid)
+        if stored_heatmap:
+            return stored_heatmap
+        else:
+            heatmap = self._compute_landing_heatmap(regex, from_move, to_move, batch_size)
+            self._db_client.store_heatmap(hid, heatmap.state)
+        return heatmap.state
+
+    def get_lapse_heatmap(self, regex: str, from_move: int, to_move: int,
+                          batch_size: int = 1000) -> dict:
+        """
+        Check the cache for the result and if not there, compute (and then cache).
+        """
+        hid = self._get_heatmap_id('lapse', regex, from_move, to_move)
+        stored_heatmap = self._db_client.get_heatmap(hid)
+        if stored_heatmap:
+            return stored_heatmap
+        else:
+            heatmap = self._compute_lapse_heatmap(regex, from_move, to_move, batch_size)
+            self._db_client.store_heatmap(hid, heatmap.state)
+        return heatmap.state
+
+    def _compute_landing_heatmap(self, regex: str, from_move: int, to_move: int,
+                                 batch_size: int=1000) -> LandingHeatmap:
         """
         1. Partition the games into chunks of size :batch_size:.
         2. Produce heatmaps for each of the partitions in parallel.
@@ -50,8 +79,8 @@ class HeatmapManager:
         logger.info("total time taken: {}s".format(t3 - t1))
         return heatmap
 
-    def compute_lapse_heatmap(self, regex: str, from_move: int, to_move: int,
-                              batch_size: int = 1000):
+    def _compute_lapse_heatmap(self, regex: str, from_move: int, to_move: int,
+                               batch_size: int = 1000) -> LapseHeatmap:
         """
         1. Partition the games into chunks of size :batch_size:.
         2. Produce heatmaps for each of the partitions in parallel.
@@ -82,14 +111,12 @@ class HeatmapManager:
     def _get_games(self, query):
         return self._db_client.games_coll.find(query)
 
-    def _compute_and_store_landing_heatmap(self) -> None:
-        """
-        TODO: implement caching of computed heatmaps
-        """
-        pass
+    @staticmethod
+    def _get_heatmap_id(heatmap_type: str, regex: str, from_move: int, to_move: int):
+        return "{0}-{1}-{2}-{3}".format(heatmap_type, regex, from_move, to_move)
 
 
-def _produce_landing_heatmap(games):
+def _produce_landing_heatmap(games: Sized) -> LandingHeatmap:
     """
     Compute the landing heatmap for the provided games that have
     from_move and to_move params injected in them.
@@ -124,7 +151,7 @@ def _produce_landing_heatmap(games):
     return res
 
 
-def _produce_lapse_heatmap(games):
+def _produce_lapse_heatmap(games: Sized) -> LapseHeatmap:
     """
     Compute the lapse heatmap for the provided games that have
     from_move and to_move params injected in them.
@@ -159,7 +186,7 @@ def _produce_lapse_heatmap(games):
     return res
 
 
-def _get_partitioned_cursor(cursor, batch_size: int, params_to_inject: dict=None):
+def _get_partitioned_cursor(cursor, batch_size: int, params_to_inject: dict=None) -> Coroutine:
     """
     Given a cursor:
     1. inject a params dict under 'injected_params' into each document

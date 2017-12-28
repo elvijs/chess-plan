@@ -22,8 +22,7 @@ def get_heatmap():
     print("getting heatmaps for opening {0}, "
           "between moves {1} and {2}".format(regex, from_move, to_move))
     print("getting lapse heatmap")
-    lapse_heatmap = heatmap_manager.compute_lapse_heatmap(regex, from_move, to_move)
+    lapse_heatmap = heatmap_manager.get_lapse_heatmap(regex, from_move, to_move)
     print("getting landing heatmap")
-    landing_heatmap = heatmap_manager.compute_landing_heatmap(regex, from_move, to_move)
-    return jsonify(**{'lapse_heatmap': lapse_heatmap.state,
-                      'landing_heatmap': landing_heatmap.state})
+    landing_heatmap = heatmap_manager.get_landing_heatmap(regex, from_move, to_move)
+    return jsonify(**{'lapse_heatmap': lapse_heatmap, 'landing_heatmap': landing_heatmap})
