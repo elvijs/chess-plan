@@ -1,3 +1,27 @@
+# Motivation
+
+This project explores what heatmaps could bring to understanding chess positions and in particular, openings.
+
+It uses the amazing [chess-heatmaps](https://ebemunk.com/chess-dataviz/) project to produce two types of heatmaps for given openings:
+* Lapse heatmaps, which measure how long each piece has spent on a given square, and
+* Landing heatmaps, which measure how often pieces land on a given square.
+
+To give you an idea, the following screenshots illustrate pawn structures for a bunch of openings. Note how Lapse heatmap hints at the general pawn structure, whereas the Landing heatmap is useful in understanding the key pawn breaks.
+ 
+A few examples follow.
+ 
+## [King's Indian, classical variation](https://www.365chess.com/eco/E92_King's_Indian_classical_variation)
+
+TODO: insert the heatmaps and some simple analysis once the full games dataset is available. Comment on the number of games used in analysis.
+
+## [Caro-Kann, classical variation](https://www.365chess.com/eco/B18_Caro-Kann_classical_variation)
+
+TODO: insert the heatmaps and some simple analysis once the full games dataset is available. Comment on the number of games used in analysis.
+
+## [French, advance, Paulsen attack](https://www.365chess.com/eco/C02_French_advance_Paulsen_attack)
+
+TODO: insert the heatmaps and some simple analysis once the full games dataset is available. Comment on the number of games used in analysis.
+
 # Get started
 
 If the initial setup is complete, then the following will do.
