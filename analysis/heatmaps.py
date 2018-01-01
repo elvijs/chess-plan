@@ -1,6 +1,6 @@
 import copy
 import logging
-import chess  # TODO: include in requirements.txt
+import chess
 
 import analysis
 from analysis.parse import get_move_landing_squares
