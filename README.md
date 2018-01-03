@@ -44,9 +44,22 @@ TODO: commentary
 
 ## [French, advance, Paulsen attack](https://www.365chess.com/eco/C02_French_advance_Paulsen_attack)
 
-TODO: insert the heatmaps and some simple analysis once the full games dataset is available. Comment on the number of games used in analysis.
+In total, 20084 games found in the masters DB.
+
+TODO: commentary
+
+### White pawn lapse heatmap
+
+![C02 white pawn lapse heatmap](https://github.com/elvijs/chess-plan/blob/master/images/Caro-Kann%2C%20B18%2C%20lapse%20heatmap.png "C02 white pawn lapse heatmap")
+
+### White pawn landing heatmap
+
+![C02 white pawn landing heatmap](https://github.com/elvijs/chess-plan/blob/master/images/Caro-Kann%2C%20B18%2C%20landing%20heatmap.png "C02 white pawn landing heatmap")
 
 # Get started
+
+TODO: this should start with local setup instructions instead.
+Mention that there's a local cache.
 
 If the initial setup is complete, then the following will do.
 
