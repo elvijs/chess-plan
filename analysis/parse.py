@@ -1,6 +1,13 @@
-from analysis import ALLOWED_COLOURS, CASTLE_MOVES, NON_PRAWNS, PIECES, SQUARE_LETTERS, SQUARE_NUMBERS, logger
+from analysis import ALLOWED_COLOURS, CASTLE_MOVES, NON_PRAWNS, PIECES, SQUARE_LETTERS, \
+    SQUARE_NUMBERS
 
 __author__ = 'elvijs'
+
+
+class MoveLandingException(Exception):
+    def __init__(self, move, msg):
+        self.move = move
+        self.msg = msg
 
 
 def get_move_landing_squares(move_string, colour):
@@ -23,10 +30,13 @@ def get_move_landing_squares(move_string, colour):
             else:
                 return [("k", "c8"), ("r", "d8")]
 
-    if move_string[0] in NON_PRAWNS:
-        piece = move_string[0].lower()
-    else:
-        piece = "p"
+    try:
+        if move_string[0] in NON_PRAWNS:
+            piece = move_string[0].lower()
+        else:
+            piece = "p"
+    except IndexError:
+        raise MoveLandingException(move_string, "empty move")
 
     if move_string[-1] in {"+"}.union(NON_PRAWNS):
         target_square = move_string[-3:-1]
@@ -38,7 +48,7 @@ def get_move_landing_squares(move_string, colour):
         assert target_square[0] in SQUARE_LETTERS
         assert target_square[1] in SQUARE_NUMBERS
     except AssertionError:
-        logger.debug("AssertionError whilst parsing {}".format(move_string))
-        return [(None, None)]
+        msg = "unexpected piece {0} or target square {1}".format(piece, target_square)
+        raise MoveLandingException(move_string, msg)
 
     return [(piece, target_square)]

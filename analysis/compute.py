@@ -8,8 +8,9 @@ import time
 import multiprocessing
 from typing import Coroutine, Sized
 
+from analysis.parse import MoveLandingException
 from storage.games import Mongo
-from analysis.heatmaps import logger, LandingHeatmap, LapseHeatmap
+from analysis.heatmaps import logger, LandingHeatmap, LapseHeatmap, MoveParsingException
 
 
 class HeatmapManager:
@@ -139,15 +140,29 @@ def _produce_landing_heatmap(games: Sized) -> LandingHeatmap:
     res = LandingHeatmap()
 
     count = 0
+    failure_count = 0
     for g in games:
         from_move = g['injected_params']['from_move']
         to_move = g['injected_params']['to_move']
-        res.update_with_a_game(g, from_move, to_move)
+        try:
+            res.update_with_a_game(g, from_move, to_move)
+        except MoveLandingException as ex:
+            logger.warning("failed to parse game {}".format(g['_id']))
+            logger.debug("couldn't parse move {0} due to {1}".format(ex.move, ex.msg))
+
+            failure_count += 1
+
+        except Exception as ex:
+            logger.exception(ex)
+            logger.error("happened on game {}".format(g['_id']))
+
+            failure_count += 1
 
         count += 1
         if count % 100 == 0:
             logger.debug("{} games processed".format(count))
 
+    logger.info("{0} games processed with {1} parsing failures".format(count, failure_count))
     return res
 
 
@@ -174,15 +189,32 @@ def _produce_lapse_heatmap(games: Sized) -> LapseHeatmap:
     res = LapseHeatmap()
 
     count = 0
+    failure_count = 0
     for g in games:
         from_move = g['injected_params']['from_move']
         to_move = g['injected_params']['to_move']
-        res.update_with_a_game(g, from_move, to_move)
+        try:
+            res.update_with_a_game(g, from_move, to_move)
+        except MoveParsingException as ex:
+            logger.warning("failed to parse game {}".format(g['_id']))
+            logger.debug("couldn't parse move {0}: {1}".format((ex.move_index + 1) / 2,
+                                                               ex.move_string))
+            logger.debug(ex.msg)
+            logger.debug("board:")
+            logger.debug("\n{}".format(ex.board))
+
+            failure_count += 1
+        except Exception as ex:
+            logger.exception(ex)
+            logger.error("happened on game {}".format(g['_id']))
+
+            failure_count += 1
 
         count += 1
         if count % 100 == 0:
             logger.debug("{} games processed".format(count))
 
+    logger.info("{0} games processed with {1} parsing failures".format(count, failure_count))
     return res
 
 

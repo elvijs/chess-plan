@@ -13,6 +13,14 @@ SQUARE_TO_NUMBER_MAP = {"a": 0, "b": 1, "c": 2, "d": 3, "e": 4, "f": 5, "g": 6, 
 HEATMAP_SQUARE_KEYS = {"p", "n", "b", "r", "q", "k", "all"}
 
 
+class MoveParsingException(Exception):
+    def __init__(self, move_string, move_index, msg, board):
+        self.move_string = move_string
+        self.move_index = move_index
+        self.msg = msg
+        self.board = board
+
+
 class Heatmap:
     """
     A base class for all heatmaps.
@@ -37,11 +45,7 @@ class Heatmap:
         game_heatmap = type(self)()  # this will be called from subclasses,
         # so need to ensure the right instance created
         game_heatmap.state = self._compute_game_heatmap_state(game, from_move, to_move)
-        try:
-            self.update_with_another_heatmap(game_heatmap)
-        except Exception as ex:
-            logger.exception(ex)
-            logger.error("happened on the following game: {}".format(game))
+        self.update_with_another_heatmap(game_heatmap)
 
     def _compute_game_heatmap_state(self, game, from_move, to_move):
         """
@@ -105,21 +109,17 @@ class LandingHeatmap(Heatmap):
         upper_limit = min(to_move * 2, len(moves) - 1)
         lower_limit = min(from_move * 2, len(moves) - 1)
         for i in range(lower_limit, upper_limit, 1):
-            try:
-                move_tuples = get_move_landing_squares(moves[i], current_colour)
-                for (piece, target_square) in move_tuples:
-                    if (piece, target_square) == (None, None):
-                        logger.debug("move parsing error, continuing")
-                        continue
-                    target_square_index = _convert_square_to_index(target_square)
-                    ret[target_square_index][piece][current_colour] += 1
-                    ret[target_square_index]["all"][current_colour] += 1
+            move_tuples = get_move_landing_squares(moves[i], current_colour)
+            for (piece, target_square) in move_tuples:
+                if (piece, target_square) == (None, None):
+                    logger.debug("move parsing error, continuing")
+                    continue
+                target_square_index = _convert_square_to_index(target_square)
+                ret[target_square_index][piece][current_colour] += 1
+                ret[target_square_index]["all"][current_colour] += 1
 
-                current_colour = "b" if current_colour == "w" else "w"
-            except Exception as ex:
-                logger.info("exception whilst updating results with move string: {}".format(moves[i]))
-                logger.exception(ex)
-                return self._get_starting_heatmap()
+            current_colour = "b" if current_colour == "w" else "w"
+
         return ret
 
 
@@ -141,17 +141,14 @@ class LapseHeatmap(Heatmap):
         upper_limit = min(to_move * 2, len(moves) - 1)
         lower_limit = min(from_move * 2, len(moves) - 1)
         board = chess.Board()
-        try:
-            for i in range(0, upper_limit, 1):
+        for i in range(0, upper_limit, 1):
+            try:
                 board.push_san(moves[i])
                 if lower_limit <= i:
                     self._update_state_with_board(heatmap_state, board)
-        except Exception as ex:
-            logger.info("exception whilst updating results with move string: {}".format(moves[i]))
-            logger.exception(ex)
-            logger.info("board: \n")
-            logger.info(board.__str__())
-            return self._get_starting_heatmap()
+            except ValueError as ex:
+                raise MoveParsingException(moves[i], i, ex, board)
+
         return heatmap_state
 
     @staticmethod
