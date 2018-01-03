@@ -17,11 +17,12 @@ In total, 12206 games found in the masters DB.
 
 ### Lapse heatmap
 
-![E92 lapse heatmap](https://github.com/elvijs/markdown-here/raw/master/src/common/images/icon48.png "E92 lapse heatmap")
+![E92 lapse heatmap](https://github.com/elvijs/chess-plan/blob/master/images/King's%20Indian%2C%20E92%2C%20lapse%20heatmap.png "E92 lapse heatmap")
 
 
 ### Landing heatmap
 
+![E92 landing heatmap](https://github.com/elvijs/chess-plan/blob/master/images/King's%20Indian%2C%20E92%20pawn%20landing%20heatmap.png "E92 landing heatmap")
 
 
 ## [Caro-Kann, classical variation](https://www.365chess.com/eco/B18_Caro-Kann_classical_variation)
