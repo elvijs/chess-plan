@@ -10,7 +10,7 @@ The following will come in handy:
 `7z x PACKAGE.7z`
 
 This will populate the folder with a Scid DB (\*.sg4, \*.si4 and \*.sn4 files).
-You can finally convert to PGN using [sciDB](http://scidb.sourceforge.net/): open up the DB, then export to PGN and finally run the `import_and_store.py` script from this directory.
+You can finally convert to PGN using [Scid vs. PC](https://sourceforge.net/projects/scidvspc/?source=typ_redirect): open up the DB, then export to PGN and finally run the `import_and_store.py` script from this directory.
 
 TODO: It would be great to automate this process, so that it's easier to restart the project. 
 
