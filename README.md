@@ -36,13 +36,11 @@ TODO: commentary
 
 ### White pawn lapse heatmap
 
-![B18 white pawn lapse heatmap](https://github.com/elvijs/chess-plan/blob/master/images/King's%20Indian%2C%20E92%2C%20lapse%20heatmap.png "B18 white pawn lapse heatmap")
+![B18 white pawn lapse heatmap](https://github.com/elvijs/chess-plan/blob/master/images/Caro-Kann%2C%20B18%2C%20lapse%20heatmap.png "B18 white pawn lapse heatmap")
 
 ### White pawn landing heatmap
 
-![B18 white pawn landing heatmap](https://github.com/elvijs/chess-plan/blob/master/images/King's%20Indian%2C%20E92%20pawn%20landing%20heatmap.png "B18 white pawn landing heatmap")
-
-TODO: insert the heatmaps and some simple analysis once the full games dataset is available. Comment on the number of games used in analysis.
+![B18 white pawn landing heatmap](https://github.com/elvijs/chess-plan/blob/master/images/Caro-Kann%2C%20B18%2C%20landing%20heatmap.png "B18 white pawn landing heatmap")
 
 ## [French, advance, Paulsen attack](https://www.365chess.com/eco/C02_French_advance_Paulsen_attack)
 
