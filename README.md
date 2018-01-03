@@ -12,7 +12,17 @@ A few examples follow.
  
 ## [King's Indian, classical variation](https://www.365chess.com/eco/E92_King's_Indian_classical_variation)
 
-TODO: insert the heatmaps and some simple analysis once the full games dataset is available. Comment on the number of games used in analysis.
+
+In total, 12206 games found in the masters DB.
+
+### Lapse heatmap
+
+![E92 lapse heatmap](https://github.com/elvijs/markdown-here/raw/master/src/common/images/icon48.png "E92 lapse heatmap")
+
+
+### Landing heatmap
+
+
 
 ## [Caro-Kann, classical variation](https://www.365chess.com/eco/B18_Caro-Kann_classical_variation)
 
