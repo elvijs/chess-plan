@@ -32,7 +32,7 @@ The diagrams below also illustrate the differences between the two heatmaps.
 
 In total, 5869 games found in the masters DB.
 
-TODO: commentary
+TODO: commentary. This is actually really interesting as people seem to be pushing the c pawn as well as Kings side pawns within the first 20 moves. This is a good lesson for me.
 
 ### White pawn lapse heatmap
 
@@ -46,15 +46,15 @@ TODO: commentary
 
 In total, 20084 games found in the masters DB.
 
-TODO: commentary
+TODO: commentary along the lines of the clear queen's side play
 
 ### White pawn lapse heatmap
 
-![C02 white pawn lapse heatmap](https://github.com/elvijs/chess-plan/blob/master/images/Caro-Kann%2C%20B18%2C%20lapse%20heatmap.png "C02 white pawn lapse heatmap")
+![C02 white pawn lapse heatmap](https://github.com/elvijs/chess-plan/blob/master/images/French%20defence%2C%20C02%2C%20lapse%20heatmap.png "C02 white pawn lapse heatmap")
 
 ### White pawn landing heatmap
 
-![C02 white pawn landing heatmap](https://github.com/elvijs/chess-plan/blob/master/images/Caro-Kann%2C%20B18%2C%20landing%20heatmap.png "C02 white pawn landing heatmap")
+![C02 white pawn landing heatmap](https://github.com/elvijs/chess-plan/blob/master/images/French%20defence%2C%20C02%2C%20landing%20heatmap.png "C02 white pawn landing heatmap")
 
 # Get started
 
